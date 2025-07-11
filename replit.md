@@ -4,6 +4,16 @@
 
 This is a full-stack web application for managing cryptocurrency token and NFT approvals across multiple blockchain networks. The application allows users to connect their wallets, view active approvals, and revoke permissions to enhance security. It's built with a modern React frontend using shadcn/ui components and an Express.js backend with PostgreSQL database storage.
 
+## Recent Changes (January 2025)
+
+✓ Integrated real blockchain data using Etherscan API
+✓ Created BlockchainService for fetching live token approvals
+✓ Added API endpoints for approval management
+✓ Fixed wallet modal duplicate keys issue
+✓ Configured Vercel deployment settings
+✓ Updated useApprovals hook to fetch real data from backend
+✓ Set up proper environment variables for production
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.

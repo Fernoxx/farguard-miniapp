@@ -14,18 +14,21 @@ export const WalletModal = ({ isOpen, onClose, onSelectWallet, isConnecting }: W
 
   const walletOptions = [
     {
+      id: 'farcaster',
       name: 'Farcaster Wallet',
       type: 'MetaMask' as WalletType,
       icon: '🟣',
       description: 'Connect using your Farcaster wallet'
     },
     {
+      id: 'metamask',
       name: 'MetaMask',
       type: 'MetaMask' as WalletType,
       icon: '🦊',
       description: 'Connect using MetaMask wallet'
     },
     {
+      id: 'walletconnect',
       name: 'WalletConnect',
       type: 'WalletConnect' as WalletType,
       icon: '🔗',
@@ -47,7 +50,7 @@ export const WalletModal = ({ isOpen, onClose, onSelectWallet, isConnecting }: W
         <div className="space-y-4">
           {walletOptions.map((wallet) => (
             <button
-              key={wallet.type}
+              key={wallet.id}
               onClick={() => onSelectWallet(wallet.type)}
               disabled={isConnecting}
               className="w-full flex items-center justify-center py-4 px-6 bg-purple-700/70 hover:bg-purple-600/70 text-white rounded-xl font-semibold shadow-lg transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-400 border border-purple-600/30 disabled:opacity-50 disabled:cursor-not-allowed"
