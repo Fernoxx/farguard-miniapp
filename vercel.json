@@ -2,7 +2,7 @@
   "version": 2,
   "builds": [
     {
-      "src": "client/**/*",
+      "src": "package.json",
       "use": "@vercel/static-build",
       "config": {
         "distDir": "dist/public"
@@ -15,14 +15,16 @@
       "dest": "/api/index.ts"
     },
     {
+      "handle": "filesystem"
+    },
+    {
       "src": "/(.*)",
-      "dest": "/dist/public/$1"
+      "dest": "/index.html"
     }
   ],
   "buildCommand": "npm run build",
-  "outputDirectory": "dist/public",
-  "installCommand": "npm install",
   "env": {
-    "NEXT_PUBLIC_ETHERSCAN_KEY": "@etherscan-key"
+    "NEXT_PUBLIC_ETHERSCAN_KEY": "KBBAH33N5GNCN2C177DVE5K1G3S7MRWIU7",
+    "DATABASE_URL": "@database-url"
   }
 }
