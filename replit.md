@@ -21,10 +21,10 @@ Preferred communication style: Simple, everyday language.
 
 ### Backend Architecture
 - **Framework**: Express.js with TypeScript
-- **Database**: PostgreSQL with Drizzle ORM
+- **Database**: PostgreSQL with Drizzle ORM (DatabaseStorage implementation)
 - **Session Management**: Express sessions with PostgreSQL store
 - **API Design**: RESTful endpoints for approval management
-- **Database Provider**: Neon serverless PostgreSQL
+- **Database Provider**: Neon serverless PostgreSQL with connection pooling
 
 ### Development Environment
 - **Deployment**: Configured for Replit with development banner integration
@@ -36,10 +36,12 @@ Preferred communication style: Simple, everyday language.
 ### Database Schema
 - **Users Table**: Stores user authentication data (id, username, password)
 - **Approvals Table**: Stores token/NFT approval data including:
-  - Contract addresses and token information
+  - Contract addresses and token information (name, symbol, type)
   - Spender addresses and approved amounts
   - Chain information and revocation status
+  - User relationships via foreign keys
   - Timestamps for tracking
+- **Relations**: Users have many approvals, approvals belong to users
 
 ### Frontend Components
 - **FarGuard**: Main application component handling wallet connection and approval display

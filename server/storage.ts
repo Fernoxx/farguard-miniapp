@@ -1,4 +1,6 @@
 import { approvals, users, type User, type InsertUser, type Approval, type InsertApproval } from "@shared/schema";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 
 export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
@@ -13,94 +15,70 @@ export interface IStorage {
   revokeApproval(id: number): Promise<boolean>;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<number, User>;
-  private approvals: Map<number, Approval>;
-  private currentUserId: number;
-  private currentApprovalId: number;
-
-  constructor() {
-    this.users = new Map();
-    this.approvals = new Map();
-    this.currentUserId = 1;
-    this.currentApprovalId = 1;
-  }
-
+export class DatabaseStorage implements IStorage {
   async getUser(id: number): Promise<User | undefined> {
-    return this.users.get(id);
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || undefined;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const id = this.currentUserId++;
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
+    const [user] = await db
+      .insert(users)
+      .values(insertUser)
+      .returning();
     return user;
   }
 
   async getApprovals(userId?: number): Promise<Approval[]> {
-    const allApprovals = Array.from(this.approvals.values());
     if (userId) {
-      return allApprovals.filter(approval => approval.userId === userId);
+      return await db.select().from(approvals).where(eq(approvals.userId, userId));
     }
-    return allApprovals;
+    return await db.select().from(approvals);
   }
 
   async getApprovalsByWallet(walletAddress: string, chain: string): Promise<Approval[]> {
     // In a real implementation, this would query blockchain APIs
-    // For now, return empty array since we're not storing wallet addresses
-    return [];
+    // For now, return approvals for the chain (we don't store wallet addresses in the schema)
+    return await db.select().from(approvals).where(eq(approvals.chain, chain));
   }
 
   async createApproval(insertApproval: InsertApproval): Promise<Approval> {
-    const id = this.currentApprovalId++;
-    const now = new Date();
-    const approval: Approval = {
-      ...insertApproval,
-      id,
-      userId: insertApproval.userId ?? null,
-      isRevoked: insertApproval.isRevoked ?? false,
-      createdAt: now,
-      updatedAt: now,
-    };
-    this.approvals.set(id, approval);
+    const [approval] = await db
+      .insert(approvals)
+      .values(insertApproval)
+      .returning();
     return approval;
   }
 
   async updateApproval(id: number, approvalUpdate: Partial<Approval>): Promise<Approval | undefined> {
-    const existing = this.approvals.get(id);
-    if (!existing) return undefined;
-
-    const updated: Approval = {
-      ...existing,
-      ...approvalUpdate,
-      updatedAt: new Date(),
-    };
-    this.approvals.set(id, updated);
-    return updated;
+    const [approval] = await db
+      .update(approvals)
+      .set({ ...approvalUpdate, updatedAt: new Date() })
+      .where(eq(approvals.id, id))
+      .returning();
+    return approval || undefined;
   }
 
   async deleteApproval(id: number): Promise<boolean> {
-    return this.approvals.delete(id);
+    const result = await db
+      .delete(approvals)
+      .where(eq(approvals.id, id));
+    return (result.rowCount ?? 0) > 0;
   }
 
   async revokeApproval(id: number): Promise<boolean> {
-    const approval = this.approvals.get(id);
-    if (!approval) return false;
-
-    const updated: Approval = {
-      ...approval,
-      isRevoked: true,
-      updatedAt: new Date(),
-    };
-    this.approvals.set(id, updated);
-    return true;
+    const [approval] = await db
+      .update(approvals)
+      .set({ isRevoked: true, updatedAt: new Date() })
+      .where(eq(approvals.id, id))
+      .returning();
+    return approval !== undefined;
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
