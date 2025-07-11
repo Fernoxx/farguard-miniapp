@@ -63,6 +63,8 @@ export class MemStorage implements IStorage {
     const approval: Approval = {
       ...insertApproval,
       id,
+      userId: insertApproval.userId ?? null,
+      isRevoked: insertApproval.isRevoked ?? false,
       createdAt: now,
       updatedAt: now,
     };
