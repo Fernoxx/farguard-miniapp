@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { TokenApproval, Chain } from '@/types';
+import { apiRequest } from '@/lib/queryClient';
 
 export const useApprovals = (walletAddress: string, selectedChain: string) => {
   const [approvals, setApprovals] = useState<TokenApproval[]>([]);
@@ -13,52 +14,31 @@ export const useApprovals = (walletAddress: string, selectedChain: string) => {
     setError(null);
 
     try {
-      // Simulate API call - in real app, this would call blockchain APIs
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Fetch real approval data from the API
+      const response = await apiRequest(`/api/approvals/${walletAddress}/${selectedChain}`, {
+        method: 'GET',
+      });
 
-      const mockApprovals: TokenApproval[] = [
-        {
-          id: '1',
-          tokenName: 'USD Coin',
-          tokenSymbol: 'USDC',
-          contractAddress: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-          spenderAddress: '0x1234567890123456789012345678901234567890',
-          approvedAmount: 'Unlimited',
-          tokenType: 'Token',
-          chain: selectedChain,
-          isUnlimited: true,
-          selected: false
-        },
-        {
-          id: '2',
-          tokenName: 'Bored Ape Yacht Club',
-          tokenSymbol: 'BAYC',
-          contractAddress: '0xBC4CA0EdA7647A8aB7C2061c2E118A18a93fE367',
-          spenderAddress: '0x9876543210987654321098765432109876543210',
-          approvedAmount: 'Token ID: 1',
-          tokenType: 'NFT',
-          chain: selectedChain,
-          isUnlimited: false,
-          tokenId: '1',
-          selected: false
-        },
-        {
-          id: '3',
-          tokenName: 'Wrapped Ethereum',
-          tokenSymbol: 'WETH',
-          contractAddress: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-          spenderAddress: '0xabc1234567890123456789012345678901234def2',
-          approvedAmount: '100 ETH',
-          tokenType: 'Token',
-          chain: selectedChain,
-          isUnlimited: false,
-          selected: false
-        }
-      ];
+      const backendApprovals = response.data;
+      
+      // Transform backend approvals to frontend format
+      const transformedApprovals: TokenApproval[] = backendApprovals.map((approval: any) => ({
+        id: approval.id.toString(),
+        tokenName: approval.tokenName,
+        tokenSymbol: approval.tokenSymbol || 'UNKNOWN',
+        contractAddress: approval.contractAddress,
+        spenderAddress: approval.spenderAddress,
+        approvedAmount: approval.approvedAmount,
+        tokenType: approval.tokenType,
+        chain: approval.chain,
+        isUnlimited: approval.approvedAmount === 'Unlimited' || approval.approvedAmount.includes('unlimited'),
+        selected: false
+      }));
 
-      setApprovals(mockApprovals);
+      setApprovals(transformedApprovals);
     } catch (err: any) {
       setError(err.message || 'Failed to fetch approvals');
+      setApprovals([]); // Clear approvals on error
     } finally {
       setLoading(false);
     }

@@ -14,6 +14,12 @@ export const WalletModal = ({ isOpen, onClose, onSelectWallet, isConnecting }: W
 
   const walletOptions = [
     {
+      name: 'Farcaster Wallet',
+      type: 'MetaMask' as WalletType,
+      icon: '🟣',
+      description: 'Connect using your Farcaster wallet'
+    },
+    {
       name: 'MetaMask',
       type: 'MetaMask' as WalletType,
       icon: '🦊',
@@ -24,12 +30,6 @@ export const WalletModal = ({ isOpen, onClose, onSelectWallet, isConnecting }: W
       type: 'WalletConnect' as WalletType,
       icon: '🔗',
       description: 'Connect using WalletConnect protocol'
-    },
-    {
-      name: 'Coinbase Wallet',
-      type: 'Coinbase' as WalletType,
-      icon: '💰',
-      description: 'Connect using Coinbase Wallet'
     }
   ];
 

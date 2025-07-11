@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertApprovalSchema } from "@shared/schema";
+import { blockchainService } from "./blockchain";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {

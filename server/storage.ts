@@ -1,6 +1,7 @@
 import { approvals, users, type User, type InsertUser, type Approval, type InsertApproval } from "@shared/schema";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
+import { blockchainService } from "./blockchain";
 
 export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
@@ -42,9 +43,44 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getApprovalsByWallet(walletAddress: string, chain: string): Promise<Approval[]> {
-    // In a real implementation, this would query blockchain APIs
-    // For now, return approvals for the chain (we don't store wallet addresses in the schema)
-    return await db.select().from(approvals).where(eq(approvals.chain, chain));
+    try {
+      // Fetch real approval data from blockchain
+      const blockchainApprovals = await blockchainService.getTokenApprovals(walletAddress, chain);
+      
+      // Convert blockchain approvals to database format and save them
+      const dbApprovals: Approval[] = [];
+      
+      for (const approval of blockchainApprovals) {
+        // Check if we already have this approval in database
+        const existingApproval = await db.select().from(approvals).where(
+          eq(approvals.contractAddress, approval.contractAddress)
+        );
+        
+        if (existingApproval.length === 0) {
+          // Create new approval record
+          const newApproval = await this.createApproval({
+            userId: null, // No user association for blockchain-fetched approvals
+            contractAddress: approval.contractAddress,
+            tokenName: approval.tokenName,
+            tokenSymbol: approval.tokenSymbol,
+            tokenType: approval.tokenType,
+            spenderAddress: approval.spenderAddress,
+            approvedAmount: approval.value,
+            chain: chain,
+            isRevoked: false
+          });
+          dbApprovals.push(newApproval);
+        } else {
+          dbApprovals.push(existingApproval[0]);
+        }
+      }
+      
+      return dbApprovals;
+    } catch (error) {
+      console.error('Error fetching approvals from blockchain:', error);
+      // Fallback to database-only approvals
+      return await db.select().from(approvals).where(eq(approvals.chain, chain));
+    }
   }
 
   async createApproval(insertApproval: InsertApproval): Promise<Approval> {
