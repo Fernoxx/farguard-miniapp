@@ -1,0 +1,258 @@
+// App.js
+import React, { useState, useEffect } from 'react';
+// Importing icons from lucide-react for a clean UI
+import { Wallet, ChevronDown, CheckCircle, XCircle } from 'lucide-react';
+
+function App() {
+  // State to manage the currently selected blockchain chain
+  const [selectedChain, setSelectedChain] = useState('ethereum');
+  // State to track if a wallet is connected
+  const [isWalletConnected, setIsWalletConnected] = useState(false);
+  // State to control the visibility of the wallet connection modal
+  const [showWalletModal, setShowWalletModal] = useState(false);
+  // State to store the mock data for token/NFT approvals
+  const [approvals, setApprovals] = useState([]);
+
+  // Mock data for approvals, populated when the wallet is connected
+  // In a real application, this data would be fetched from the blockchain
+  useEffect(() => {
+    if (isWalletConnected) {
+      setApprovals([
+        { id: 1, name: 'USDC', contract: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48', amount: 'Unlimited', type: 'Token' },
+        { id: 2, name: 'BAYC', contract: '0xBC4CA0EdA7647A8aB7C2061c2E118A18a93fE367', amount: '1', type: 'NFT' },
+        { id: 3, name: 'WETH', contract: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2', amount: '100 ETH', type: 'Token' },
+        { id: 4, name: 'CryptoPunks', contract: '0xb47e3cd837dDF8e4c57F05d70Ab865de6e193BBB', amount: '1', type: 'NFT' },
+        { id: 5, name: 'DAI', contract: '0x6B175474E89094C44Da98b954EedeAC495271d0F', amount: '500 DAI', type: 'Token' },
+      ]);
+    } else {
+      // Clear approvals if wallet is disconnected
+      setApprovals([]);
+    }
+  }, [isWalletConnected]);
+
+  // Handler for connecting the wallet button click
+  const handleConnectWallet = () => {
+    setShowWalletModal(true); // Show the wallet selection modal
+  };
+
+  // Handler for disconnecting the wallet
+  const handleDisconnectWallet = () => {
+    setIsWalletConnected(false); // Set wallet connected status to false
+    setShowWalletModal(false); // Hide the modal if it's open
+  };
+
+  // Handler for selecting a wallet type from the modal
+  const handleSelectWallet = (walletType) => {
+    // In a real application, this would initiate actual wallet connection logic (e.g., using ethers.js or web3.js)
+    console.log(Simulating connection to ${walletType}...);
+    setIsWalletConnected(true); // Simulate successful connection
+    setShowWalletModal(false); // Close the modal
+  };
+
+  // Handler for revoking an approval
+  const handleRevokeApproval = (id) => {
+    // Simulate revoking an approval by filtering it out from the mock data
+    setApprovals(approvals.filter(approval => approval.id !== id));
+    console.log(Revoking approval for ID: ${id});
+  };
+
+  // Array of supported blockchain chains with their properties
+  const chains = [
+    { name: 'Ethereum', value: 'ethereum', disabled: false },
+    { name: 'Base', value: 'base', disabled: false },
+    { name: 'Arbitrum', value: 'arbitrum', disabled: false },
+    { name: 'Celo', value: 'celo', disabled: false },
+    { name: 'Monad (Coming Soon)', value: 'monad', disabled: true }, // Monad is disabled as per requirements
+  ];
+
+  return (
+    // Main container for the application, with Farcaster-inspired violet/purple gradient background
+    <div className="min-h-screen bg-gradient-to-br from-purple-900 to-indigo-900 text-white font-inter flex flex-col items-center p-4 sm:p-6">
+      {/* Tailwind CSS CDN for styling */}
+      <script src="https://cdn.tailwindcss.com"></script>
+      {/* Google Fonts for Inter typeface */}
+      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />   {/* Custom CSS for animations */}
+      <style>
+        {`
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes scaleUp {
+          from { transform: scale(0.9); opacity: 0; }
+          to { transform: scale(1); opacity: 1; }
+        }
+        .animate-fade-in {
+          animation: fadeIn 0.3s ease-out forwards;
+        }
+        .animate-scale-up {
+          animation: scaleUp 0.3s ease-out forwards;
+        }
+        /* Ensure the body and html take full height for proper gradient display */
+        html, body, #root {
+          height: 100%;
+          margin: 0;
+        }
+        .font-inter {
+          font-family: 'Inter', sans-serif;
+        }
+        `}
+      </style>
+
+      {/* Header section of the application */}
+      <header className="w-full max-w-4xl flex flex-col sm:flex-row items-center justify-between py-4 px-6 bg-purple-800 rounded-xl shadow-lg mb-8">
+        {/* Application title */}
+        <h1 className="text-3xl font-bold text-purple-200 mb-4 sm:mb-0">FarGuard</h1>
+        <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-4">
+          {/* Chain Selection Dropdown */}
+          <div className="relative w-full sm:w-auto">
+            <select
+              className="appearance-none bg-purple-700 text-white py-2 px-4 pr-8 rounded-lg shadow-inner focus:outline-none focus:ring-2 focus:ring-purple-400 cursor-pointer w-full"
+              value={selectedChain}
+              onChange={(e) => setSelectedChain(e.target.value)}
+            >
+              {chains.map((chain) => (
+                <option key={chain.value} value={chain.value} disabled={chain.disabled}>
+                  {chain.name}
+                </option>
+              ))}
+            </select>
+            {/* Custom dropdown arrow icon */}
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-purple-200">
+              <ChevronDown className="h-5 w-5" />
+            </div>
+          </div>
+
+          {/* Wallet Connection/Disconnection Button */}
+          <button
+            onClick={isWalletConnected ? handleDisconnectWallet : handleConnectWallet}
+            className={`flex items-center justify-center px-6 py-2 rounded-lg font-semibold shadow-md transition-all duration-300 ease-in-out
+              ${isWalletConnected ? 'bg-red-500 hover:bg-red-600' : 'bg-purple-600 hover:bg-purple-700'}
+              focus:outline-none focus:ring-2 focus:ring-purple-400 transform hover:scale-105`}
+          >
+            <Wallet className="w-5 h-5 mr-2" />
+            {isWalletConnected ? 'Disconnect Wallet' : 'Connect Wallet'}
+          </button>
+        </div>
+      </header>  {/* Main content area */}
+      <main className="w-full max-w-4xl bg-purple-800 rounded-xl shadow-lg p-6">
+        {!isWalletConnected ? (
+          // Display message and button if wallet is not connected
+          <div className="flex flex-col items-center justify-center h-64 text-center">
+            <p className="text-xl text-purple-300 mb-4">Connect your wallet to manage your token and NFT approvals.</p>
+            <button
+              onClick={handleConnectWallet}
+              className="px-8 py-3 bg-purple-600 text-white rounded-lg font-semibold shadow-md transition-all duration-300 ease-in-out hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-400 transform hover:scale-105"
+            >
+              Connect Wallet
+            </button>
+          </div>
+        ) : (
+          // Display approvals table if wallet is connected
+          <div>
+            <h2 className="text-2xl font-bold text-purple-200 mb-6 text-center">Your Approvals ({selectedChain})</h2>
+            {approvals.length === 0 ? (
+              // Message if no approvals are found for the selected chain
+              <div className="text-center text-purple-300 text-lg py-10">
+                No active approvals found for {selectedChain}.
+              </div>
+            ) : (
+              // Responsive table for displaying approvals
+              <div className="overflow-x-auto rounded-lg shadow-inner">
+                <table className="min-w-full bg-purple-700 rounded-lg">
+                  <thead className="bg-purple-600">
+                    <tr>
+                      <th className="py-3 px-4 text-left text-sm font-medium text-purple-100 uppercase tracking-wider rounded-tl-lg">
+                        Name
+                      </th>
+                      <th className="py-3 px-4 text-left text-sm font-medium text-purple-100 uppercase tracking-wider">
+                        Contract Address
+                      </th>
+                      <th className="py-3 px-4 text-left text-sm font-medium text-purple-100 uppercase tracking-wider">
+                        Amount Approved
+                      </th>
+                      <th className="py-3 px-4 text-center text-sm font-medium text-purple-100 uppercase tracking-wider rounded-tr-lg">
+                        Action
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-purple-600">
+                    {approvals.map((approval) => (
+                      <tr key={approval.id} className="hover:bg-purple-600 transition-colors duration-200">
+                        <td className="py-3 px-4 whitespace-nowrap text-purple-200">
+                          <div className="flex items-center">
+                            {/* Icon based on approval type (Token/NFT) */}
+                            {approval.type === 'Token' ? (
+                              <CheckCircle className="w-4 h-4 mr-2 text-green-400" />
+                            ) : (
+                              <XCircle className="w-4 h-4 mr-2 text-blue-400" />
+                            )}
+                            {approval.name}
+                          </div>
+                        </td>
+                        <td className="py-3 px-4 whitespace-nowrap text-purple-300 text-sm font-mono">
+                          {/* Display truncated contract address for readability */}
+                          {approval.contract.substring(0, 6)}...{approval.contract.substring(approval.contract.length - 4)}
+                        </td>
+                        <td className="py-3 px-4 whitespace-nowrap text-purple-200">
+                          {approval.amount}
+                        </td>
+                        <td className="py-3 px-4 whitespace-nowrap text-center">
+                          {/* Revoke button for each approval */}
+                          <button
+                            onClick={() => handleRevokeApproval(approval.id)}    className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-semibold text-sm shadow-md transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-red-400"
+                          >
+                            Revoke
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
+      </main>
+
+      {/* Wallet Connection Modal */}
+      {showWalletModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50 animate-fade-in">
+          <div className="bg-purple-800 rounded-xl shadow-2xl p-6 w-full max-w-sm transform scale-95 animate-scale-up">
+            <h3 className="text-2xl font-bold text-purple-200 mb-6 text-center">Connect Your Wallet</h3>
+            <div className="space-y-4">
+              {/* MetaMask Wallet Option */}
+              <button
+                onClick={() => handleSelectWallet('MetaMask')}
+                className="w-full flex items-center justify-center py-3 bg-purple-700 hover:bg-purple-600 text-white rounded-lg font-semibold shadow-md transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-400"
+              >
+                {/* Placeholder image for MetaMask logo */}
+                <img src="https://placehold.co/24x24/ffffff/000000?text=MM" alt="MetaMask Logo" className="w-6 h-6 mr-3 rounded-full" />
+                MetaMask
+              </button>
+              {/* WalletConnect Option */}
+              <button
+                onClick={() => handleSelectWallet('WalletConnect')}
+                className="w-full flex items-center justify-center py-3 bg-purple-700 hover:bg-purple-600 text-white rounded-lg font-semibold shadow-md transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-400"
+              >
+                {/* Placeholder image for WalletConnect logo */}
+                <img src="https://placehold.co/24x24/ffffff/000000?text=WC" alt="WalletConnect Logo" className="w-6 h-6 mr-3 rounded-full" />
+                WalletConnect
+              </button>
+              {/* You can add more wallet options here following the same pattern */}
+            </div>
+            {/* Cancel button for the modal */}
+            <button
+              onClick={() => setShowWalletModal(false)}
+              className="mt-8 w-full py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-semibold shadow-md transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-gray-400"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default App;
